@@ -99,9 +99,10 @@ describe("epics", () => {
   });
 
   it.skip("should pass payload to epic", () => null);
-  it.skip("should use adapters from context", () => null);
-  it.skip("should use adapters from properties", () => null);
-  it.skip("should bubble up actions to context provider", () => null);
-  it.skip("should support hot module replacement", () => null);
   it.skip("should support registering of multiple epics", () => null);
+  it.skip("should support dependency injection via context", () => null);
+  it.skip("should support dependency injection via properties", () => null);
+  it.skip("should bubble up actions to context provider", () => null);
+  it.skip("should provide interface for loggers", () => null);
+  it.skip("should support hot module replacement", () => null);
 });
