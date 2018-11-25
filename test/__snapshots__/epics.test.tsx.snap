@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`epics should execute subsequent actions 1`] = `
+<span>
+  1
+</span>
+`;
+
+exports[`epics should execute subsequent actions 2`] = `
+<span>
+  2
+</span>
+`;
+
+exports[`epics should execute subsequent actions 3`] = `
+<span>
+  3
+</span>
+`;
+
+exports[`epics should execute subsequent actions 4`] = `
+<span>
+  6
+</span>
+`;
+
+exports[`reducers should pass payload to reducer 1`] = `
+<div>
+  1
+  <button
+    onClick={[Function]}
+  />
+</div>
+`;
+
+exports[`reducers should pass payload to reducer 2`] = `
+<div>
+  6
+  <button
+    onClick={[Function]}
+  />
+</div>
+`;
+
+exports[`state should pass initial state to children component 1`] = `
+<span>
+  1
+</span>
+`;

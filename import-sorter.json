@@ -1,0 +1,15 @@
+{
+  "generalConfiguration": {
+    "sortOnBeforeSave": true
+  },
+  "importStringConfiguration": {
+    "quoteMark": "double",
+    "tabSize": 2,
+    "trailingComma": "multiLine"
+  },
+  "sortConfiguration": {
+    "customOrderingRules": {
+      "defaultNumberOfEmptyLinesAfterGroup": 1
+    }
+  }
+}

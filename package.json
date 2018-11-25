@@ -1,0 +1,36 @@
+{
+  "name": "react-local-epic",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "tape": "TS_NODE_FILES=true TS_NODE_CACHE=false tape -r ts-node/register test/*.test.{ts,tsx}",
+    "test": "jest"
+  },
+  "author": "Denis Kruschinski <denis.kruschinski@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "enzyme-adapter-react-16": "^1.7.0",
+    "queueing-subject": "^0.3.0",
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3",
+    "rxjs": "^6.3.3"
+  },
+  "devDependencies": {
+    "@types/enzyme": "^3.1.15",
+    "@types/enzyme-adapter-react-16": "^1.0.3",
+    "@types/jest": "^23.3.9",
+    "@types/react": "^16.7.7",
+    "@types/react-test-renderer": "^16.0.3",
+    "@types/tape": "^4.2.32",
+    "enzyme": "^3.7.0",
+    "jest": "^23.6.0",
+    "react-test-renderer": "^16.6.3",
+    "react-testing-library": "^5.3.0",
+    "tape": "^4.9.1",
+    "ts-jest": "^23.10.5",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.6"
+  }
+}
