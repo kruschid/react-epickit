@@ -28,15 +28,17 @@ describe("state", () => {
 
 describe("reducers", () => {
   it("should pass payload to reducer", () => {
-    const addToCounter = createAction<IState, number>((s, p) => ({
-      counter: s.counter + p,
-    }));
+    const actionList = {
+      addToCounter: createAction<IState, number>((s, p) => ({
+        counter: s.counter + p,
+      })),
+    };
     const component = renderer.create(
-      <EpicKitComp initialState={{counter: 1}}>
-        {({dispatch, state}) =>
+      <EpicKitComp initialState={{counter: 1}} actions={actionList}>
+        {({state, actions: {addToCounter}}) =>
           <div>
             {state.counter}
-            <button onClick={() => dispatch(addToCounter(5))} />
+            <button onClick={() => addToCounter(5)} />
           </div>
         }
       </EpicKitComp>,

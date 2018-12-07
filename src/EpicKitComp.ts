@@ -2,24 +2,36 @@ import * as React from "react";
 import { BehaviorSubject, merge, Observable, Subject, Subscription } from "rxjs";
 import { filter, mergeAll, share, tap } from "rxjs/operators";
 
+// tslint:disable-next-line
+type FirstArgument<T> = T extends (arg1: infer U, ...args: any[]) => any ? U : any;
+
 export type Reducer<S, P = never> = (state: S, payload?: P) => S;
+
 export type Epic<S = any, A extends IAction = IAction<S>, R extends IAction = IAction<S>>
   = (action$: Observable<A>, state$: Observable<S>) => Observable<R>;
 
-export interface IAction <S = any, P = any> {
+export interface IAction <S = any, P = never> {
   type?: symbol;
   payload?: P;
   reducer?: Reducer<S, P>;
 }
-type DispatchFn<S> = (action: IAction<S>) => void;
-type LifecycleCallback<S> = (p: {state: S, dispatch: DispatchFn<S>}) => void;
+// type ConnectedDispatch<P = never> = (arg: P) => void;
 
-interface IEpicKitCompProps<S> {
+type DispatchFn<S, P = never> = (action: IAction<S, P>) => void;
+
+type IConnectedActions<L> = {
+  [x in keyof L]: (payload: FirstArgument<L[x]>) => void;
+};
+
+interface IActionList {
+  [x: string]: ReturnType<ICreateAction>;
+}
+
+interface IEpicKitCompProps<S, L> {
   initialState?: S;
   epics?: Array<Epic<S>>;
-  onCreate?: LifecycleCallback<S>;
-  onDestroy?: LifecycleCallback<S>;
-  children: (p: {state: S, dispatch: DispatchFn<S>}) => React.ReactNode;
+  actions?: L;
+  children: (p: {state: S, dispatch: DispatchFn<S>, actions: IConnectedActions<L>}) => React.ReactNode;
 }
 
 interface IEpicKit<S> {
@@ -89,36 +101,49 @@ export const EpicKit = <S>(initialState: S, epics: Array<Epic<S>> = []): IEpicKi
   };
 };
 
-export class EpicKitComp<S> extends React.Component<IEpicKitCompProps<S>> {
+export class EpicKitComp<S, L extends IActionList> extends React.Component<IEpicKitCompProps<S, L>> {
   public state: S;
 
   private epicKit: IEpicKit<S>;
-  private epicsSubscription: Subscription;
-  private stateSubscription: Subscription;
+  private actions: IConnectedActions<L>;
+  private queue: Array<IAction<S>>;
+  private subscription: Subscription;
 
-  constructor(p: IEpicKitCompProps<S>) {
+  constructor(p: IEpicKitCompProps<S, L>) {
     super(p);
 
-    this.state = p.initialState;
     this.epicKit = EpicKit(p.initialState, p.epics);
+    this.state = p.initialState;
+    this.actions = Object.keys(p.actions).map((key: keyof L) =>
+      (payload: any) => this.dispatch(p.actions[key]()),
+    );
+  }
+
+  public dispatch(action: IAction<S>) {
+    if (this.subscription) {
+      this.epicKit.dispatch(action);
+    } else {
+      this.queue.push(action);
+    }
   }
 
   public componentDidMount() {
-    this.stateSubscription = this.epicKit.state$.pipe(
-      tap(this.setState.bind(this)),
+    this.subscription = merge(
+      this.epicKit.epic$,
+      this.epicKit.state$.pipe(tap(this.setState.bind(this))),
     )
     .subscribe();
   }
 
   public componentWillUnmount() {
-    this.epicsSubscription.unsubscribe();
-    this.stateSubscription.unsubscribe();
+    this.subscription.unsubscribe();
   }
 
   public render() {
-    if (!this.epicsSubscription) {
-      this.epicsSubscription = this.epicKit.epic$.subscribe();
-    }
-    return this.props.children({state: this.state, dispatch: this.epicKit.dispatch});
+    return this.props.children({
+      state: this.state,
+      dispatch: this.dispatch.bind(this),
+      actions: this.actions,
+    });
   }
 }
