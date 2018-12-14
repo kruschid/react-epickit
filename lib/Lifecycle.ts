@@ -6,7 +6,7 @@ interface ILifecycleProps {
 }
 
 export class Lifecycle extends React.Component<ILifecycleProps> {
-  constructor(props) {
+  constructor(props: any) {
     super(props);
   }
 

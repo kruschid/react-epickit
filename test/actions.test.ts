@@ -1,4 +1,4 @@
-import { createAction, IAction, Reducer } from "../src/EpicKitComp";
+import { createAction, createActionWithPayload, IAction, Reducer } from "../lib/epickit";
 
 describe("#createAction", () => {
   it("should create actions", () => {
@@ -9,23 +9,23 @@ describe("#createAction", () => {
 
     const cases: Array<[IAction, IAction]> = [[
       // only type
-      createAction<string>(type)(),
+      createAction<string>(type),
       {type, payload: undefined, reducer: undefined},
     ], [
       // type and payload
-      createAction<string, string>(type)(payload),
+      createActionWithPayload<string, string>(type)(payload),
       {type, payload, reducer: undefined},
     ], [
       // type and reducer
-      createAction<string>(type, reducer)(),
+      createAction<string>(type, reducer),
       {type, payload: undefined, reducer},
     ], [
       // type, payload and reducer
-      createAction<string, string>(type, reducerWithPayload)(payload),
+      createActionWithPayload<string, string>(type, reducerWithPayload)(payload),
       {type, payload, reducer: reducerWithPayload},
     ], [
       // payload and reducer
-      createAction<string, string>(reducerWithPayload)(payload),
+      createActionWithPayload<string, string>(reducerWithPayload)(payload),
       {type: undefined, payload, reducer: reducerWithPayload},
     ]];
 

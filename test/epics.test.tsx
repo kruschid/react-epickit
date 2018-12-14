@@ -3,8 +3,9 @@ import * as renderer from "react-test-renderer";
 import { interval, of, timer } from "rxjs";
 import { delayWhen, filter, mapTo, switchMapTo, tap } from "rxjs/operators";
 
-import { createAction, Epic, EpicKitComp } from "../src/EpicKitComp";
-import { Lifecycle } from "../src/Lifecycle";
+import { createAction, createActionWithPayload, Epic } from "../lib/epickit";
+import { Lifecycle } from "../lib/Lifecycle";
+import { EpicKitComp } from "../src/EpicKit";
 
 // state definition
 interface IState {
@@ -18,7 +19,7 @@ describe("state", () => {
   it("should pass initial state to children component", async () => {
     const component = renderer.create(
       <EpicKitComp initialState={{counter: 1}}>
-        {({state}) => <span>{state.counter}</span>}
+        {(s) => <span>{s.counter}</span>}
       </EpicKitComp>,
     );
     expect(component).toMatchSnapshot();
@@ -28,17 +29,15 @@ describe("state", () => {
 
 describe("reducers", () => {
   it("should pass payload to reducer", () => {
-    const actionList = {
-      addToCounter: createAction<IState, number>((s, p) => ({
-        counter: s.counter + p,
-      })),
-    };
+    const addToCounter = createActionWithPayload<IState, number>((s, p) => ({
+      counter: s.counter + p,
+    }));
     const component = renderer.create(
-      <EpicKitComp initialState={{counter: 1}} actions={actionList}>
-        {({state, actions: {addToCounter}}) =>
+      <EpicKitComp initialState={{counter: 1}}>
+        {(s, d) =>
           <div>
-            {state.counter}
-            <button onClick={() => addToCounter(5)} />
+            {s.counter}
+            <button onClick={() => d(addToCounter(5))} />
           </div>
         }
       </EpicKitComp>,
@@ -63,18 +62,18 @@ describe("epics", () => {
     }));
 
     // epic
-    const epic$: Epic = (action$) => action$.pipe(
+    const epic$: Epic<IState> = (action$) => action$.pipe(
       filter((action) => START_COUNTING === action.type),
       switchMapTo(interval(100)),
-      mapTo(incCounter()),
+      mapTo(incCounter),
     );
 
     return of(renderer.create(
       <EpicKitComp initialState={initialState} epics={[epic$]}>
-        {({state, dispatch}) =>
+        {(s, d) =>
           <>
-            <Lifecycle onCreate={() => dispatch(startCounting())} />
-            <span>{state.counter}</span>
+            <Lifecycle onCreate={() => d(startCounting)} />
+            <span>{s.counter}</span>
           </>
         }
       </EpicKitComp>,
