@@ -1,3 +1,4 @@
+import { QueueingSubject } from "queueing-subject";
 import { BehaviorSubject, merge, Observable, Subject } from "rxjs";
 import { filter, ignoreElements, map, mergeAll, share, tap } from "rxjs/operators";
 
@@ -76,9 +77,9 @@ export const filterAction = <P, S = any>(type: symbol | symbol[]) => (observable
     ),
   );
 
-export const EpicKit = <S>(initialState: S, epics: Array<Epic<S>> = []): IEpicKit<S> => {
+export const createEpicKit = <S>(initialState: S, epics: Array<Epic<S>> = []): IEpicKit<S> => {
   const state$ = new BehaviorSubject<S>(initialState);
-  const action$ = new Subject<IAction<S>>();
+  const action$ = new QueueingSubject<IAction<S>>();
   const epic$ = merge(
     connectEpics(state$, action$, epics),
     reduceState(state$, action$),

@@ -9,6 +9,7 @@
   "author": "Denis Kruschinski <denis.kruschinski@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "queueing-subject": "^0.3.0",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "rxjs": "^6.3.3"

@@ -1,33 +1,36 @@
 import * as React from "react";
 import { Subscription } from "rxjs";
 
-import { DispatchFn, Epic, EpicKit, IAction, IEpicKit } from "../lib/epickit";
+import { createEpicKit, DispatchFn, Epic, IEpicKit } from "../lib/epickit";
 
-interface IEpicKitProps<S> {
-  initialState: S;
-  epics?: Array<Epic<S>>;
-  children: (state: S, dispatch: DispatchFn<S>) => React.ReactNode;
+export interface IStateDispatchProps<S> {
+  state: S;
+  dispatch: DispatchFn<S>;
 }
 
-export class EpicKitComp<S> extends React.Component<IEpicKitProps<S>> {
+export interface IEpicKitProps<S> {
+  epicKit?: IEpicKit<S>;
+  initialState?: S;
+  epics?: Array<Epic<S>>;
+  children: (p: IStateDispatchProps<S>) => React.ReactNode;
+}
+export class EpicKit<S> extends React.Component<IEpicKitProps<S>> {
   public state: S;
 
   private epicKit: IEpicKit<S>;
-  private queue: Array<IAction<S>> = [];
   private subscription: Subscription | undefined;
 
   constructor(p: IEpicKitProps<S>) {
     super(p);
 
-    this.epicKit = EpicKit(p.initialState, p.epics);
-    this.state = p.initialState;
-  }
-
-  public dispatch(action: IAction<S>) {
-    if (this.subscription) {
-      this.epicKit.dispatch(action);
+    if (p.epicKit) {
+      this.epicKit = p.epicKit!;
+      this.state = p.epicKit.state$.getValue();
+    } else if (p.initialState) {
+      this.epicKit = createEpicKit<S>(p.initialState, p.epics);
+      this.state = p.initialState!;
     } else {
-      this.queue.push(action);
+      throw Error("EpicKit component requires epicKit or initialState property to be set");
     }
   }
 
@@ -35,7 +38,6 @@ export class EpicKitComp<S> extends React.Component<IEpicKitProps<S>> {
     this.subscription = this.epicKit.epic$.subscribe(([state]) =>
       this.setState(state),
     );
-    this.queue.forEach(this.epicKit.dispatch);
   }
 
   public componentWillUnmount() {
@@ -43,6 +45,9 @@ export class EpicKitComp<S> extends React.Component<IEpicKitProps<S>> {
   }
 
   public render() {
-    return this.props.children(this.state, this.dispatch.bind(this));
+    return this.props.children({
+      state: this.state,
+      dispatch: this.epicKit.dispatch,
+    });
   }
 }

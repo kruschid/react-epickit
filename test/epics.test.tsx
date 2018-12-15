@@ -3,9 +3,10 @@ import * as renderer from "react-test-renderer";
 import { interval, of, timer } from "rxjs";
 import { delayWhen, filter, mapTo, switchMapTo, tap } from "rxjs/operators";
 
-import { createAction, createActionWithPayload, Epic } from "../lib/epickit";
+import { createAction, createActionWithPayload, Epic, IAction } from "../lib/epickit";
 import { Lifecycle } from "../lib/Lifecycle";
-import { EpicKitComp } from "../src/EpicKit";
+import { EpicKit } from "../src/EpicKit";
+import { EpicKitContext } from "../src/EpicKitContext";
 
 // state definition
 interface IState {
@@ -15,12 +16,28 @@ const initialState: IState = {
   counter: 1,
 };
 
+const increment: IAction<IState> = createAction<IState>((state) => ({
+  ...state, counter: state.counter + 1,
+}));
+
+const addToCounter = createActionWithPayload<IState, number>((s, p) => ({
+  counter: s.counter + p,
+}));
+
+const START_COUNTING = Symbol("START_COUNTING");
+const INC_COUNTER = Symbol("INC_COUNTER");
+
+const startCounting = createAction(START_COUNTING);
+const incCounter = createAction<IState>(INC_COUNTER, (state) => ({
+  ...state, counter: state.counter + 1,
+}));
+
 describe("state", () => {
   it("should pass initial state to children component", async () => {
     const component = renderer.create(
-      <EpicKitComp initialState={{counter: 1}}>
-        {(s) => <span>{s.counter}</span>}
-      </EpicKitComp>,
+      <EpicKit initialState={{counter: 1}}>
+        {({state}) => <span>{state.counter}</span>}
+      </EpicKit>,
     );
     expect(component).toMatchSnapshot();
     component.unmount();
@@ -29,18 +46,15 @@ describe("state", () => {
 
 describe("reducers", () => {
   it("should pass payload to reducer", () => {
-    const addToCounter = createActionWithPayload<IState, number>((s, p) => ({
-      counter: s.counter + p,
-    }));
     const component = renderer.create(
-      <EpicKitComp initialState={{counter: 1}}>
-        {(s, d) =>
+      <EpicKit initialState={{counter: 1}}>
+        {({state, dispatch}) =>
           <div>
-            {s.counter}
-            <button onClick={() => d(addToCounter(5))} />
+            {state.counter}
+            <button onClick={() => dispatch(addToCounter(5))} />
           </div>
         }
-      </EpicKitComp>,
+      </EpicKit>,
     );
     expect(component).toMatchSnapshot();
     component.root.find((node) => node.type === "button").props.onClick();
@@ -51,17 +65,6 @@ describe("reducers", () => {
 
 describe("epics", () => {
   it("should execute subsequent actions", () => {
-    // action types
-    const START_COUNTING = Symbol("START_COUNTING");
-    const INC_COUNTER = Symbol("INC_COUNTER");
-
-    // actions
-    const startCounting = createAction(START_COUNTING);
-    const incCounter = createAction<IState>(INC_COUNTER, (state) => ({
-      ...state, counter: state.counter + 1,
-    }));
-
-    // epic
     const epic$: Epic<IState> = (action$) => action$.pipe(
       filter((action) => START_COUNTING === action.type),
       switchMapTo(interval(100)),
@@ -69,14 +72,14 @@ describe("epics", () => {
     );
 
     return of(renderer.create(
-      <EpicKitComp initialState={initialState} epics={[epic$]}>
-        {(s, d) =>
+      <EpicKit initialState={initialState} epics={[epic$]}>
+        {({state, dispatch}) =>
           <>
-            <Lifecycle onCreate={() => d(startCounting)} />
-            <span>{s.counter}</span>
+            <Lifecycle onCreate={() => dispatch(startCounting)} />
+            <span>{state.counter}</span>
           </>
         }
-      </EpicKitComp>,
+      </EpicKit>,
     ))
     .pipe(
       delayWhen((component) => {
@@ -99,11 +102,27 @@ describe("epics", () => {
     .toPromise();
   });
 
-  it.skip("should pass payload to epic", () => null);
-  it.skip("should support registering of multiple epics", () => null);
-  it.skip("should support dependency injection via context", () => null);
-  it.skip("should support dependency injection via properties", () => null);
-  it.skip("should bubble up actions to context provider", () => null);
-  it.skip("should provide interface for loggers", () => null);
-  it.skip("should support hot module replacement", () => null);
+  it("should pass state and dispatch via context", () => {
+    const {Provider: StateProvider, Consumer: StateConsumer} = EpicKitContext<IState>(initialState);
+
+    const Counter = () =>
+      <StateConsumer>
+        {({state, dispatch}) =>
+          <div>
+            Counter: {state.counter}
+            <button onClick={() => dispatch(increment)}></button>
+          </div>
+        }
+      </StateConsumer>;
+
+    const component = renderer.create(
+      <StateProvider>
+        <Counter />
+      </StateProvider>,
+    );
+    expect(component).toMatchSnapshot(),
+    component.root.find((node) => node.type === "button").props.onClick();
+    expect(component).toMatchSnapshot(),
+    component.unmount();
+  });
 });
