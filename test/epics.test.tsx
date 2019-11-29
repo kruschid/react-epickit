@@ -1,89 +1,48 @@
 import * as React from "react";
 import * as renderer from "react-test-renderer";
 import { interval, of, timer } from "rxjs";
-import { delayWhen, filter, mapTo, switchMapTo, tap } from "rxjs/operators";
+import { delayWhen, mapTo, switchMapTo, tap } from "rxjs/operators";
+import { createAction, Epic, filterAction, createEpicKit } from "epickit";
 
-import { createAction, createActionWithPayload, Epic, IAction } from "../lib/epickit";
-import { Lifecycle } from "../lib/Lifecycle";
-import { EpicKit } from "../src/EpicKit";
-import { EpicKitContext } from "../src/EpicKitContext";
+import { EpicKit, EpicKitState } from "../src/EpicKit";
 
-// state definition
 interface IState {
   counter: number;
 }
+
 const initialState: IState = {
   counter: 1,
 };
 
-const increment: IAction<IState> = createAction<IState>((state) => ({
-  ...state, counter: state.counter + 1,
+const increment = createAction<IState>((state) => ({
+  ...state,
+  counter: state.counter + 1,
 }));
 
-const addToCounter = createActionWithPayload<IState, number>((s, p) => ({
-  counter: s.counter + p,
-}));
-
-const START_COUNTING = Symbol("START_COUNTING");
-const INC_COUNTER = Symbol("INC_COUNTER");
-
-const startCounting = createAction(START_COUNTING);
-const incCounter = createAction<IState>(INC_COUNTER, (state) => ({
-  ...state, counter: state.counter + 1,
-}));
-
-describe("state", () => {
-  it("should pass initial state to children component", async () => {
-    const component = renderer.create(
-      <EpicKit initialState={{counter: 1}}>
-        {({state}) => <span>{state.counter}</span>}
-      </EpicKit>,
-    );
-    expect(component).toMatchSnapshot();
-    component.unmount();
-  });
-});
-
-describe("reducers", () => {
-  it("should pass payload to reducer", () => {
-    const component = renderer.create(
-      <EpicKit initialState={{counter: 1}}>
-        {({state, dispatch}) =>
-          <div>
-            {state.counter}
-            <button onClick={() => dispatch(addToCounter(5))} />
-          </div>
-        }
-      </EpicKit>,
-    );
-    expect(component).toMatchSnapshot();
-    component.root.find((node) => node.type === "button").props.onClick();
-    expect(component).toMatchSnapshot();
-    component.unmount();
-  });
-});
+const startCounting = createAction<IState>();
 
 describe("epics", () => {
   it("should execute subsequent actions", () => {
     const epic$: Epic<IState> = (action$) => action$.pipe(
-      filter((action) => START_COUNTING === action.type),
+      filterAction(startCounting),
       switchMapTo(interval(100)),
-      mapTo(incCounter),
+      mapTo(increment()),
     );
 
     return of(renderer.create(
-      <EpicKit initialState={initialState} epics={[epic$]}>
+      <EpicKitState epicKit={createEpicKit(initialState, epic$)}>
         {({state, dispatch}) =>
-          <>
-            <Lifecycle onCreate={() => dispatch(startCounting)} />
-            <span>{state.counter}</span>
-          </>
+          <div>
+            Counter: {state.counter}
+            <button onClick={() => dispatch(startCounting())}></button>
+          </div>
         }
-      </EpicKit>,
+      </EpicKitState>,
     ))
     .pipe(
       delayWhen((component) => {
         expect(component).toMatchSnapshot(); // 1
+        component.root.find((node) => node.type === "button").props.onClick();
         return timer(120);
       }),
       delayWhen((component) => {
@@ -103,14 +62,14 @@ describe("epics", () => {
   });
 
   it("should pass state and dispatch via context", () => {
-    const {Provider: StateProvider, Consumer: StateConsumer} = EpicKitContext<IState>(initialState);
+    const {Provider: StateProvider, Consumer: StateConsumer} = EpicKit<IState>(createEpicKit(initialState));
 
     const Counter = () =>
       <StateConsumer>
         {({state, dispatch}) =>
           <div>
             Counter: {state.counter}
-            <button onClick={() => dispatch(increment)}></button>
+            <button onClick={() => dispatch(increment())}></button>
           </div>
         }
       </StateConsumer>;
