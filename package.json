@@ -1,33 +1,31 @@
 {
   "name": "react-epickit",
   "version": "0.0.1",
-  "description": "",
+  "description": "React context-provider for epickit",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kruschid/react-epickit.git"
+  },
   "main": "index.ts",
   "scripts": {
     "test": "jest"
   },
   "author": "Denis Kruschinski <denis.kruschinski@gmail.com>",
   "license": "MIT",
-  "dependencies": {
-    "react": "16.12.0",
-    "react-dom": "16.12.0",
-    "rxjs": "6.5.3",
-    "epickit": "2.0.0"
-  },
   "peerDependencies": {
     "react": ">=16.12.0",
-    "react-dom": ">=16.12.0",
-    "rxjs": ">=6.5.3",
     "epickit": ">=2.0.0"
   },
   "devDependencies": {
     "@types/jest": "24.0.23",
-    "@types/react": "16.9.11",
+    "@types/react": "16.9.13",
     "@types/react-test-renderer": "16.9.1",
+    "epickit": "^2.0.0",
     "jest": "24.9.0",
+    "react": "^16.12.0",
     "react-test-renderer": "16.12.0",
-    "ts-jest": "24.1.0",
-    "ts-node": "8.5.2",
+    "rxjs": "^6.5.3",
+    "ts-jest": "24.2.0",
     "typescript": "3.7.2"
   }
 }
