@@ -1,6 +1,6 @@
 {
   "name": "react-epickit",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "React context-provider for epickit",
   "repository": {
     "type": "git",
