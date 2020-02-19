@@ -6,26 +6,29 @@
     "type": "git",
     "url": "git://github.com/kruschid/react-epickit.git"
   },
-  "main": "index.ts",
+  "main": "build/index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc",
+    "clean": "rm -r build"
   },
   "author": "Denis Kruschinski <denis.kruschinski@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
-    "react": ">=16.12.0",
-    "epickit": ">=2.0.0"
+    "epickit": ">=2.0.0",
+    "react": ">=16.12.0"
   },
   "devDependencies": {
-    "@types/jest": "24.0.23",
-    "@types/react": "16.9.13",
-    "@types/react-test-renderer": "16.9.1",
+    "@types/jest": "^25.1.2",
+    "@types/react": "16.9.20",
+    "@types/react-test-renderer": "^16.9.2",
     "epickit": "^2.0.0",
-    "jest": "24.9.0",
+    "jest": "25.1.0",
     "react": "^16.12.0",
-    "react-test-renderer": "16.12.0",
-    "rxjs": "^6.5.3",
-    "ts-jest": "24.2.0",
-    "typescript": "3.7.2"
-  }
+    "react-test-renderer": "^16.12.0",
+    "rxjs": "6.5.4",
+    "ts-jest": "25.2.1",
+    "typescript": "3.7.5"
+  },
+  "dependencies": {}
 }

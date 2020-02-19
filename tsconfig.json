@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "build",
+    "declaration": true,
     "sourceMap": true,
     "module": "commonjs",
     "strict": true,
@@ -14,5 +15,6 @@
       "es6"
     ]
   },
+  "files": ["src/index.tsx"],
   "compileOnSave": false
 }
